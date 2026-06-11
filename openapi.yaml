@@ -4,15 +4,32 @@ info:
   title: Navigation API
   version: 1.0.0
   description: >
-    Navigation service responsible for providing category hierarchies resolved for a specific brand, country and channel.
+    Navigation service responsible for providing category hierarchies
+    resolved for a specific brand, country and channel.
+
+tags:
+  - name: Navigation
+    description: Navigation View resolution
 
 paths:
   /navigation:
     get:
+      tags:
+        - Navigation
+
+      summary: Get resolved navigation tree
+
+      description: >
+        Returns the Navigation View applicable to a specific
+        brand, country and channel. The response contains only
+        categories active and visible for the requested context.
+
       parameters:
+
         - name: brand
           in: query
           required: true
+          description: Brand context
           schema:
             type: string
             example: zara
@@ -20,6 +37,7 @@ paths:
         - name: country
           in: query
           required: true
+          description: Country context
           schema:
             type: string
             example: es
@@ -27,27 +45,39 @@ paths:
         - name: channel
           in: query
           required: true
+          description: Consumer channel
           schema:
             type: string
             enum:
               - web
               - ios
               - android
+            example: web
+
+        - name: locale
+          in: query
+          required: false
+          description: Locale for localized content
+          schema:
+            type: string
+            example: es-ES
 
         - name: device
           in: query
           required: false
+          description: Device-specific navigation adaptation
           schema:
             type: string
             enum:
               - desktop
               - mobile
               - tablet
+            example: mobile
 
         - name: include
           in: query
           required: false
-          description: Optional fields to enrich the response
+          description: Optional enrichments
           schema:
             type: array
             items:
@@ -55,25 +85,60 @@ paths:
               enum:
                 - metadata
                 - seo
-                - analytics
           style: form
           explode: false
 
       responses:
         '200':
           description: Resolved navigation view
+
           content:
             application/json:
+
               schema:
                 $ref: '#/components/schemas/NavigationView'
-      tags:
-       - Navigation
-      
+
+              examples:
+
+                zara_es_web:
+                  summary: Zara ES Web Navigation
+                  value:
+
+                    brand: zara
+                    country: es
+                    channel: web
+                    generatedAt: "2026-06-01T10:00:00Z"
+
+                    categories:
+
+                      - id: women
+                        name: Women
+                        slug: women
+                        path: /women
+
+                      - id: summer-sale
+                        name: Summer Sale
+                        slug: summer-sale
+                        path: /summer-sale
+
+                        validFrom: "2026-06-01T00:00:00Z"
+                        validTo: "2026-06-30T23:59:59Z"
+
+                        metadata:
+                          campaign: summer-sale
+
+        '400':
+          description: Invalid request parameters
+
+        '404':
+          description: Navigation context not found
+
 components:
 
   schemas:
 
     NavigationView:
+
       type: object
 
       properties:
@@ -99,6 +164,12 @@ components:
           items:
             $ref: '#/components/schemas/Category'
 
+      required:
+        - brand
+        - country
+        - channel
+        - categories
+
     Category:
 
       type: object
@@ -113,6 +184,14 @@ components:
           type: string
           example: Women
 
+        slug:
+          type: string
+          example: women
+
+        path:
+          type: string
+          example: /women
+
         children:
           type: array
           items:
@@ -122,21 +201,43 @@ components:
           type: string
           format: date-time
           nullable: true
+          description: Category activation date
 
         validTo:
           type: string
           format: date-time
           nullable: true
+          description: Category expiration date
 
         metadata:
           type: object
           nullable: true
+          description: Optional consumer-specific metadata
           additionalProperties: true
 
-          example:
-            campaign: spring-sale
-            seoTitle: Women's Fashion
+        seo:
+          $ref: '#/components/schemas/SeoMetadata'
 
       required:
         - id
         - name
+        - slug
+        - path
+
+    SeoMetadata:
+
+      type: object
+
+      properties:
+
+        title:
+          type: string
+          example: Women's Fashion
+
+        description:
+          type: string
+          example: Discover the latest women's collection
+
+        canonicalUrl:
+          type: string
+          example: https://www.zara.com/es/en/woman
