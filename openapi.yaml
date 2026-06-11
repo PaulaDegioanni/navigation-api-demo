@@ -9,7 +9,6 @@ info:
 paths:
   /navigation:
     get:
-      summary: Get resolved navigation tree
       parameters:
         - name: brand
           in: query
