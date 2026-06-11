@@ -1,0 +1,143 @@
+openapi: 3.0.3
+
+info:
+  title: Navigation API
+  version: 1.0.0
+  description: >
+    Navigation service responsible for providing category hierarchies resolved for a specific brand, country and channel.
+
+paths:
+  /navigation:
+    get:
+      summary: Get resolved navigation tree
+      parameters:
+        - name: brand
+          in: query
+          required: true
+          schema:
+            type: string
+            example: zara
+
+        - name: country
+          in: query
+          required: true
+          schema:
+            type: string
+            example: es
+
+        - name: channel
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - web
+              - ios
+              - android
+
+        - name: device
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - desktop
+              - mobile
+              - tablet
+
+        - name: include
+          in: query
+          required: false
+          description: Optional fields to enrich the response
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - metadata
+                - seo
+                - analytics
+          style: form
+          explode: false
+
+      responses:
+        '200':
+          description: Resolved navigation view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NavigationView'
+      tags:
+       - Navigation
+      
+components:
+
+  schemas:
+
+    NavigationView:
+      type: object
+
+      properties:
+
+        brand:
+          type: string
+          example: zara
+
+        country:
+          type: string
+          example: es
+
+        channel:
+          type: string
+          example: web
+
+        generatedAt:
+          type: string
+          format: date-time
+
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    Category:
+
+      type: object
+
+      properties:
+
+        id:
+          type: string
+          example: women
+
+        name:
+          type: string
+          example: Women
+
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+        validFrom:
+          type: string
+          format: date-time
+          nullable: true
+
+        validTo:
+          type: string
+          format: date-time
+          nullable: true
+
+        metadata:
+          type: object
+          nullable: true
+          additionalProperties: true
+
+          example:
+            campaign: spring-sale
+            seoTitle: Women's Fashion
+
+      required:
+        - id
+        - name
